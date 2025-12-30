@@ -3,6 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../../controllers/complaints_controller.dart';
 import '../../utils/helpers.dart';
 
@@ -329,7 +332,7 @@ class _MenuButton extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
         side: BorderSide(
-          color: iOS26Colors.borderPrimary.withOpacity(0.3),
+          color: iOS26Colors.borderPrimary.withValues(alpha: 0.3),
         ),
       ),
       itemBuilder: (context) => [
@@ -350,7 +353,7 @@ class _MenuButton extends StatelessWidget {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
+              color: color.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, size: 16, color: color),
@@ -392,7 +395,7 @@ class _StatusCard extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: iOS26Colors.accentBlue.withOpacity(0.2),
+          color: iOS26Colors.accentBlue.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -482,9 +485,9 @@ class _StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: _color.withOpacity(0.15),
+        color: _color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: _color.withOpacity(0.3)),
+        border: Border.all(color: _color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -546,7 +549,7 @@ class _PriorityBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: _color.withOpacity(0.12),
+        color: _color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -586,7 +589,7 @@ class _CategoryBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: iOS26Colors.accentTeal.withOpacity(0.12),
+        color: iOS26Colors.accentTeal.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
@@ -615,7 +618,7 @@ class _DetailsCard extends StatelessWidget {
         color: iOS26Colors.surfaceCard,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: iOS26Colors.borderPrimary.withOpacity(0.3),
+          color: iOS26Colors.borderPrimary.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
@@ -628,7 +631,7 @@ class _DetailsCard extends StatelessWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: iOS26Colors.accentBlue.withOpacity(0.12),
+                  color: iOS26Colors.accentBlue.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -661,34 +664,292 @@ class _DetailsCard extends StatelessWidget {
           // Location
           if (complaint.location != null && complaint.location!.isNotEmpty) ...[
             const SizedBox(height: 20),
+            _LocationButton(
+              location: complaint.location!,
+              locationName: complaint.locationName,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Location Button - يفتح Google Maps عند الضغط ويعرض اسم الموقع
+class _LocationButton extends StatefulWidget {
+  final String location; // الإحداثيات
+  final String? locationName; // اسم الموقع (اختياري)
+
+  const _LocationButton({
+    required this.location,
+    this.locationName,
+  });
+
+  @override
+  State<_LocationButton> createState() => _LocationButtonState();
+}
+
+class _LocationButtonState extends State<_LocationButton> {
+  String? _resolvedAddress;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // إذا لم يكن هناك اسم موقع محفوظ، حاول جلبه من الإحداثيات
+    if (widget.locationName == null || widget.locationName!.isEmpty) {
+      _resolveAddress();
+    }
+  }
+
+  /// تحويل الإحداثيات إلى عنوان باستخدام Geocoding
+  Future<void> _resolveAddress() async {
+    final coordsRegex = RegExp(r'(-?\d+\.?\d+)\s*,\s*(-?\d+\.?\d+)');
+    final match = coordsRegex.firstMatch(widget.location);
+
+    if (match != null) {
+      final lat = match.group(1)!;
+      final lng = match.group(2)!;
+
+      setState(() => _isLoading = true);
+
+      try {
+        // استخدام Google Geocoding API أو Nominatim (مجاني)
+        final url = Uri.parse(
+            'https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lng&accept-language=ar'
+        );
+
+        final response = await http.get(url, headers: {
+          'User-Agent': 'ComplaintsApp/1.0',
+        });
+
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          final address = data['display_name'] as String?;
+
+          if (address != null && mounted) {
+            // تقصير العنوان لعرض أهم المعلومات
+            final shortAddress = _shortenAddress(data);
+            setState(() {
+              _resolvedAddress = shortAddress;
+              _isLoading = false;
+            });
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
+    }
+  }
+
+  /// تقصير العنوان لعرض المعلومات الأهم
+  String _shortenAddress(Map<String, dynamic> data) {
+    final address = data['address'] as Map<String, dynamic>?;
+    if (address == null) return data['display_name'] ?? widget.location;
+
+    final parts = <String>[];
+
+    // إضافة الأجزاء المهمة فقط
+    if (address['road'] != null) parts.add(address['road']);
+    if (address['neighbourhood'] != null) parts.add(address['neighbourhood']);
+    if (address['suburb'] != null) parts.add(address['suburb']);
+    if (address['city'] != null) parts.add(address['city']);
+    if (address['town'] != null && address['city'] == null) parts.add(address['town']);
+    if (address['state'] != null) parts.add(address['state']);
+
+    if (parts.isEmpty) {
+      return data['display_name'] ?? widget.location;
+    }
+
+    // أخذ أول 3 أجزاء فقط
+    return parts.take(3).join('، ');
+  }
+
+  /// الحصول على العنوان للعرض
+  String get displayAddress {
+    if (widget.locationName != null && widget.locationName!.isNotEmpty) {
+      return widget.locationName!;
+    }
+    return _resolvedAddress ?? widget.location;
+  }
+
+  Future<void> _openInMaps() async {
+    HapticFeedback.lightImpact();
+
+    try {
+      String lat = '';
+      String lng = '';
+
+      final coordsRegex = RegExp(r'(-?\d+\.?\d+)\s*,\s*(-?\d+\.?\d+)');
+      final match = coordsRegex.firstMatch(widget.location);
+
+      if (match != null) {
+        lat = match.group(1)!;
+        lng = match.group(2)!;
+      }
+
+      Uri? mapsUri;
+
+      if (lat.isNotEmpty && lng.isNotEmpty) {
+        // فتح بالإحداثيات مباشرة
+        mapsUri = Uri.parse('geo:$lat,$lng?q=$lat,$lng');
+
+        if (await canLaunchUrl(mapsUri)) {
+          await launchUrl(mapsUri);
+          return;
+        }
+
+        mapsUri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lng');
+
+        if (await canLaunchUrl(mapsUri)) {
+          await launchUrl(mapsUri, mode: LaunchMode.externalApplication);
+          return;
+        }
+
+        mapsUri = Uri.parse('https://maps.apple.com/?q=$lat,$lng');
+
+        if (await canLaunchUrl(mapsUri)) {
+          await launchUrl(mapsUri, mode: LaunchMode.externalApplication);
+          return;
+        }
+      } else {
+        final encodedLocation = Uri.encodeComponent(widget.location);
+
+        mapsUri = Uri.parse('geo:0,0?q=$encodedLocation');
+
+        if (await canLaunchUrl(mapsUri)) {
+          await launchUrl(mapsUri);
+          return;
+        }
+
+        mapsUri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$encodedLocation');
+
+        if (await canLaunchUrl(mapsUri)) {
+          await launchUrl(mapsUri, mode: LaunchMode.externalApplication);
+          return;
+        }
+      }
+
+      Helpers.showErrorSnackbar('لا يمكن فتح تطبيق الخرائط');
+    } catch (e) {
+      Helpers.showErrorSnackbar('حدث خطأ في فتح الموقع');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _openInMaps,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: iOS26Colors.surfaceGlass,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: iOS26Colors.accentOrange.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Row(
+          children: [
             Container(
-              padding: const EdgeInsets.all(14),
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
-                color: iOS26Colors.surfaceGlass,
-                borderRadius: BorderRadius.circular(12),
+                color: iOS26Colors.accentOrange.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: Row(
+              child: const Icon(
+                Iconsax.location,
+                size: 18,
+                color: iOS26Colors.accentOrange,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(
-                    Iconsax.location,
-                    size: 18,
+                  Row(
+                    children: [
+                      const Text(
+                        'الموقع',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: iOS26Colors.textTertiary,
+                        ),
+                      ),
+                      if (_isLoading) ...[
+                        const SizedBox(width: 8),
+                        const SizedBox(
+                          width: 10,
+                          height: 10,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 1.5,
+                            color: iOS26Colors.accentOrange,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    displayAddress,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: iOS26Colors.textPrimary,
+                      height: 1.4,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  // عرض الإحداثيات أسفل العنوان إذا تم تحويلها
+                  if (_resolvedAddress != null ||
+                      (widget.locationName != null && widget.locationName!.isNotEmpty)) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      widget.location,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: iOS26Colors.textTertiary,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: iOS26Colors.accentOrange.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Iconsax.export_3,
+                    size: 14,
                     color: iOS26Colors.accentOrange,
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      complaint.location!,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: iOS26Colors.textSecondary,
-                      ),
+                  SizedBox(width: 4),
+                  Text(
+                    'فتح',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: iOS26Colors.accentOrange,
                     ),
                   ),
                 ],
               ),
             ),
           ],
-        ],
+        ),
       ),
     );
   }
@@ -712,7 +973,7 @@ class _ImagesSection extends StatelessWidget {
         color: iOS26Colors.surfaceCard,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: iOS26Colors.borderPrimary.withOpacity(0.3),
+          color: iOS26Colors.borderPrimary.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
@@ -725,7 +986,7 @@ class _ImagesSection extends StatelessWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: iOS26Colors.accentPurple.withOpacity(0.12),
+                  color: iOS26Colors.accentPurple.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -747,7 +1008,7 @@ class _ImagesSection extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: iOS26Colors.accentPurple.withOpacity(0.12),
+                  color: iOS26Colors.accentPurple.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -783,7 +1044,7 @@ class _ImagesSection extends StatelessWidget {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: iOS26Colors.borderPrimary.withOpacity(0.3),
+                        color: iOS26Colors.borderPrimary.withValues(alpha: 0.3),
                       ),
                     ),
                     child: ClipRRect(
@@ -836,7 +1097,7 @@ class _UserInfoCard extends StatelessWidget {
         color: iOS26Colors.surfaceCard,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: iOS26Colors.borderPrimary.withOpacity(0.3),
+          color: iOS26Colors.borderPrimary.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
@@ -849,7 +1110,7 @@ class _UserInfoCard extends StatelessWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: iOS26Colors.accentGreen.withOpacity(0.12),
+                  color: iOS26Colors.accentGreen.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -954,7 +1215,7 @@ class _TimelineCard extends StatelessWidget {
         color: iOS26Colors.surfaceCard,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: iOS26Colors.borderPrimary.withOpacity(0.3),
+          color: iOS26Colors.borderPrimary.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
@@ -967,7 +1228,7 @@ class _TimelineCard extends StatelessWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: iOS26Colors.accentIndigo.withOpacity(0.12),
+                  color: iOS26Colors.accentIndigo.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -1047,7 +1308,7 @@ class _TimelineItem extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: color.withOpacity(0.4),
+                    color: color.withValues(alpha: 0.4),
                     blurRadius: 6,
                   ),
                 ],
@@ -1117,7 +1378,7 @@ class _BottomActions extends StatelessWidget {
         color: iOS26Colors.surfaceElevated,
         border: Border(
           top: BorderSide(
-            color: iOS26Colors.borderPrimary.withOpacity(0.3),
+            color: iOS26Colors.borderPrimary.withValues(alpha: 0.3),
           ),
         ),
       ),
@@ -1135,7 +1396,7 @@ class _BottomActions extends StatelessWidget {
                     color: iOS26Colors.surfaceGlass,
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: iOS26Colors.borderPrimary.withOpacity(0.4),
+                      color: iOS26Colors.borderPrimary.withValues(alpha: 0.4),
                     ),
                   ),
                   child: const Row(
@@ -1174,7 +1435,7 @@ class _BottomActions extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
                       BoxShadow(
-                        color: iOS26Colors.accentBlue.withOpacity(0.3),
+                        color: iOS26Colors.accentBlue.withValues(alpha: 0.3),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -1323,7 +1584,7 @@ class _StatusOption extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.12),
+                  color: color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, size: 20, color: color),
@@ -1374,7 +1635,7 @@ class _DeleteConfirmationDialog extends StatelessWidget {
               width: 64,
               height: 64,
               decoration: BoxDecoration(
-                color: iOS26Colors.accentRed.withOpacity(0.12),
+                color: iOS26Colors.accentRed.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -1499,7 +1760,7 @@ class _ImageViewerDialog extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: iOS26Colors.surfaceElevated.withOpacity(0.8),
+                color: iOS26Colors.surfaceElevated.withValues(alpha: 0.8),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -1585,7 +1846,7 @@ class _NotFoundState extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               decoration: BoxDecoration(
-                color: iOS26Colors.accentBlue.withOpacity(0.15),
+                color: iOS26Colors.accentBlue.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Text(
@@ -1732,7 +1993,7 @@ class _AssignAdminBottomSheetState extends State<_AssignAdminBottomSheet> {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: iOS26Colors.accentGreen.withOpacity(0.15),
+                    color: iOS26Colors.accentGreen.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
@@ -1795,7 +2056,7 @@ class _AssignAdminBottomSheetState extends State<_AssignAdminBottomSheet> {
                 color: iOS26Colors.surfaceGlass,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: iOS26Colors.borderPrimary.withOpacity(0.3),
+                  color: iOS26Colors.borderPrimary.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
@@ -1904,7 +2165,7 @@ class _AssignAdminBottomSheetState extends State<_AssignAdminBottomSheet> {
               color: iOS26Colors.surfaceElevated,
               border: Border(
                 top: BorderSide(
-                  color: iOS26Colors.borderPrimary.withOpacity(0.3),
+                  color: iOS26Colors.borderPrimary.withValues(alpha: 0.3),
                 ),
               ),
             ),
@@ -1958,7 +2219,7 @@ class _AssignAdminBottomSheetState extends State<_AssignAdminBottomSheet> {
                         boxShadow: _selectedAdminId != null && !_isAssigning
                             ? [
                           BoxShadow(
-                            color: iOS26Colors.accentGreen.withOpacity(0.3),
+                            color: iOS26Colors.accentGreen.withValues(alpha: 0.3),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),
@@ -2033,13 +2294,13 @@ class _AdminCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected
-              ? iOS26Colors.accentGreen.withOpacity(0.1)
+              ? iOS26Colors.accentGreen.withValues(alpha: 0.1)
               : iOS26Colors.surfaceCard,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
-                ? iOS26Colors.accentGreen.withOpacity(0.5)
-                : iOS26Colors.borderPrimary.withOpacity(0.3),
+                ? iOS26Colors.accentGreen.withValues(alpha: 0.5)
+                : iOS26Colors.borderPrimary.withValues(alpha: 0.3),
             width: isSelected ? 1.5 : 0.5,
           ),
         ),
@@ -2050,7 +2311,7 @@ class _AdminCard extends StatelessWidget {
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                color: iOS26Colors.accentPurple.withOpacity(0.2),
+                color: iOS26Colors.accentPurple.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Center(

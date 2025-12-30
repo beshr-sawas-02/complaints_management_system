@@ -8,7 +8,8 @@ class ComplaintModel {
   final dynamic categoryId;
   final String title;
   final String description;
-  final String? location;
+  final String? location; // الإحداثيات الأصلية
+  final String? locationName; // اسم الموقع (الشارع/المنطقة)
   final String status;
   final String priority;
   final List<ComplaintImage> images;
@@ -27,6 +28,7 @@ class ComplaintModel {
     required this.title,
     required this.description,
     this.location,
+    this.locationName,
     required this.status,
     required this.priority,
     this.images = const [],
@@ -62,6 +64,7 @@ class ComplaintModel {
       title: json['title'] ?? '',
       description: json['description'] ?? '',
       location: json['location'],
+      locationName: json['locationName'],
       status: json['status'] ?? 'pending',
       priority: json['priority'] ?? 'medium',
       images: imagesList,
@@ -111,6 +114,7 @@ class ComplaintModel {
       'title': title,
       'description': description,
       'location': location,
+      'locationName': locationName,
       'status': status,
       'priority': priority,
       'images': images.map((e) => e.toJson()).toList(),
@@ -147,6 +151,30 @@ class ComplaintModel {
     return null;
   }
 
+  /// يرجع اسم الموقع إذا كان متاحاً، وإلا يرجع الإحداثيات
+  String? get displayLocation => locationName ?? location;
+
+  /// يتحقق إذا كان الموقع عبارة عن إحداثيات
+  bool get hasCoordinates {
+    if (location == null) return false;
+    final coordsRegex = RegExp(r'(-?\d+\.?\d+)\s*,\s*(-?\d+\.?\d+)');
+    return coordsRegex.hasMatch(location!);
+  }
+
+  /// يستخرج الإحداثيات من الموقع
+  ({double lat, double lng})? get coordinates {
+    if (location == null) return null;
+    final coordsRegex = RegExp(r'(-?\d+\.?\d+)\s*,\s*(-?\d+\.?\d+)');
+    final match = coordsRegex.firstMatch(location!);
+    if (match != null) {
+      return (
+      lat: double.tryParse(match.group(1)!) ?? 0,
+      lng: double.tryParse(match.group(2)!) ?? 0,
+      );
+    }
+    return null;
+  }
+
   bool get isPending => status == 'pending';
   bool get isInProgress => status == 'in_progress';
   bool get isResolved => status == 'resolved';
@@ -160,6 +188,7 @@ class ComplaintModel {
     String? title,
     String? description,
     String? location,
+    String? locationName,
     String? status,
     String? priority,
     List<ComplaintImage>? images,
@@ -178,6 +207,7 @@ class ComplaintModel {
       title: title ?? this.title,
       description: description ?? this.description,
       location: location ?? this.location,
+      locationName: locationName ?? this.locationName,
       status: status ?? this.status,
       priority: priority ?? this.priority,
       images: images ?? this.images,
@@ -267,6 +297,7 @@ class CreateComplaintRequest {
   final String title;
   final String description;
   final String? location;
+  final String? locationName;
   final String? priority;
 
   CreateComplaintRequest({
@@ -274,6 +305,7 @@ class CreateComplaintRequest {
     required this.title,
     required this.description,
     this.location,
+    this.locationName,
     this.priority,
   });
 
@@ -283,6 +315,7 @@ class CreateComplaintRequest {
       'title': title,
       'description': description,
       if (location != null) 'location': location,
+      if (locationName != null) 'locationName': locationName,
       if (priority != null) 'priority': priority,
     };
   }
@@ -293,6 +326,7 @@ class UpdateComplaintRequest {
   final String? title;
   final String? description;
   final String? location;
+  final String? locationName;
   final String? priority;
 
   UpdateComplaintRequest({
@@ -300,6 +334,7 @@ class UpdateComplaintRequest {
     this.title,
     this.description,
     this.location,
+    this.locationName,
     this.priority,
   });
 
@@ -309,6 +344,7 @@ class UpdateComplaintRequest {
     if (title != null) data['title'] = title;
     if (description != null) data['description'] = description;
     if (location != null) data['location'] = location;
+    if (locationName != null) data['locationName'] = locationName;
     if (priority != null) data['priority'] = priority;
     return data;
   }
