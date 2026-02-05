@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import '../data/models/complaint_model.dart';
 import '../data/models/user_model.dart';
@@ -31,7 +32,11 @@ class DashboardController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    loadDashboardData();
+    // ✅ الحل: انتظر حتى يكتمل بناء الـ frame الأول
+    // هذا يضمن أن StorageService قد تم تهيئته بالكامل
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      loadDashboardData();
+    });
   }
 
   Future<void> loadDashboardData() async {

@@ -110,7 +110,8 @@ class _ComplaintDetailsViewState extends State<ComplaintDetailsView> {
               child: _BottomActions(
                 complaintId: complaint.id!,
                 onStatusTap: () => _showStatusBottomSheet(complaint.id!),
-                onAssignTap: () => _showAssignDialog(complaint.id!),
+                // ✅ تم تعليق زر تعيين مسؤول
+                // onAssignTap: () => _showAssignDialog(complaint.id!),
               ),
             ),
           ],
@@ -127,9 +128,10 @@ class _ComplaintDetailsViewState extends State<ComplaintDetailsView> {
       case 'status':
         _showStatusBottomSheet(complaint.id!);
         break;
-      case 'assign':
-        _showAssignDialog(complaint.id!);
-        break;
+    // ✅ تم تعليق خيار تعيين مسؤول من القائمة
+    // case 'assign':
+    //   _showAssignDialog(complaint.id!);
+    //   break;
       case 'delete':
         _showDeleteConfirmation(complaint.id!);
         break;
@@ -151,35 +153,36 @@ class _ComplaintDetailsViewState extends State<ComplaintDetailsView> {
     );
   }
 
-  void _showAssignDialog(String id) {
-    HapticFeedback.mediumImpact();
-
-    // استخراج ID المسؤول المعين حالياً
-    final complaint = controller.selectedComplaint.value;
-    String? currentAssignedToId;
-
-    if (complaint?.assignedTo != null) {
-      if (complaint!.assignedTo is String) {
-        currentAssignedToId = complaint.assignedTo as String;
-      } else {
-        // إذا كان UserModel
-        currentAssignedToId = complaint.assignedTo?.id;
-      }
-    }
-
-    Get.bottomSheet(
-      _AssignAdminBottomSheet(
-        complaintId: id,
-        currentAssignedTo: currentAssignedToId,
-        onAssigned: () {
-          // إعادة تحميل تفاصيل الشكوى
-          controller.loadComplaintDetails(id);
-        },
-      ),
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-    );
-  }
+  // ✅ تم تعليق دالة عرض نافذة تعيين المسؤول
+  // void _showAssignDialog(String id) {
+  //   HapticFeedback.mediumImpact();
+  //
+  //   // استخراج ID المسؤول المعين حالياً
+  //   final complaint = controller.selectedComplaint.value;
+  //   String? currentAssignedToId;
+  //
+  //   if (complaint?.assignedTo != null) {
+  //     if (complaint!.assignedTo is String) {
+  //       currentAssignedToId = complaint.assignedTo as String;
+  //     } else {
+  //       // إذا كان UserModel
+  //       currentAssignedToId = complaint.assignedTo?.id;
+  //     }
+  //   }
+  //
+  //   Get.bottomSheet(
+  //     _AssignAdminBottomSheet(
+  //       complaintId: id,
+  //       currentAssignedTo: currentAssignedToId,
+  //       onAssigned: () {
+  //         // إعادة تحميل تفاصيل الشكوى
+  //         controller.loadComplaintDetails(id);
+  //       },
+  //     ),
+  //     isScrollControlled: true,
+  //     backgroundColor: Colors.transparent,
+  //   );
+  // }
 
   void _showDeleteConfirmation(String id) {
     HapticFeedback.mediumImpact();
@@ -337,7 +340,8 @@ class _MenuButton extends StatelessWidget {
       ),
       itemBuilder: (context) => [
         _buildMenuItem('status', Iconsax.edit, 'تغيير الحالة', iOS26Colors.accentBlue),
-        _buildMenuItem('assign', Iconsax.user_add, 'تعيين مسؤول', iOS26Colors.accentGreen),
+        // ✅ تم تعليق خيار تعيين مسؤول من القائمة المنسدلة
+        // _buildMenuItem('assign', Iconsax.user_add, 'تعيين مسؤول', iOS26Colors.accentGreen),
         _buildMenuItem('delete', Iconsax.trash, 'حذف', iOS26Colors.accentRed),
       ],
     );
@@ -1358,16 +1362,18 @@ class _TimelineItem extends StatelessWidget {
   }
 }
 
-/// Bottom Actions
+/// Bottom Actions - ✅ تم تعديله لإظهار زر تغيير الحالة فقط
 class _BottomActions extends StatelessWidget {
   final String complaintId;
   final VoidCallback onStatusTap;
-  final VoidCallback onAssignTap;
+  // ✅ تم تعليق onAssignTap
+  // final VoidCallback onAssignTap;
 
   const _BottomActions({
     required this.complaintId,
     required this.onStatusTap,
-    required this.onAssignTap,
+    // ✅ تم تعليق onAssignTap
+    // required this.onAssignTap,
   });
 
   @override
@@ -1386,46 +1392,10 @@ class _BottomActions extends StatelessWidget {
         top: false,
         child: Row(
           children: [
-            // Status Button
+            // Status Button - ✅ الآن يأخذ العرض الكامل
             Expanded(
               child: GestureDetector(
                 onTap: onStatusTap,
-                child: Container(
-                  height: 52,
-                  decoration: BoxDecoration(
-                    color: iOS26Colors.surfaceGlass,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: iOS26Colors.borderPrimary.withValues(alpha: 0.4),
-                    ),
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Iconsax.edit,
-                        size: 18,
-                        color: iOS26Colors.textSecondary,
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        'تغيير الحالة',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: iOS26Colors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            // Assign Button
-            Expanded(
-              child: GestureDetector(
-                onTap: onAssignTap,
                 child: Container(
                   height: 52,
                   decoration: BoxDecoration(
@@ -1445,13 +1415,13 @@ class _BottomActions extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        Iconsax.user_add,
+                        Iconsax.edit,
                         size: 18,
                         color: Colors.white,
                       ),
                       SizedBox(width: 8),
                       Text(
-                        'تعيين مسؤول',
+                        'تغيير الحالة',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -1463,6 +1433,49 @@ class _BottomActions extends StatelessWidget {
                 ),
               ),
             ),
+            // ✅ تم تعليق زر تعيين مسؤول
+            // const SizedBox(width: 12),
+            // // Assign Button
+            // Expanded(
+            //   child: GestureDetector(
+            //     onTap: onAssignTap,
+            //     child: Container(
+            //       height: 52,
+            //       decoration: BoxDecoration(
+            //         gradient: const LinearGradient(
+            //           colors: [iOS26Colors.accentBlue, iOS26Colors.accentIndigo],
+            //         ),
+            //         borderRadius: BorderRadius.circular(14),
+            //         boxShadow: [
+            //           BoxShadow(
+            //             color: iOS26Colors.accentBlue.withValues(alpha: 0.3),
+            //             blurRadius: 12,
+            //             offset: const Offset(0, 4),
+            //           ),
+            //         ],
+            //       ),
+            //       child: const Row(
+            //         mainAxisAlignment: MainAxisAlignment.center,
+            //         children: [
+            //           Icon(
+            //             Iconsax.user_add,
+            //             size: 18,
+            //             color: Colors.white,
+            //           ),
+            //           SizedBox(width: 8),
+            //           Text(
+            //             'تعيين مسؤول',
+            //             style: TextStyle(
+            //               fontSize: 14,
+            //               fontWeight: FontWeight.w600,
+            //               color: Colors.white,
+            //             ),
+            //           ),
+            //         ],
+            //       ),
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),
@@ -1541,9 +1554,9 @@ class _StatusBottomSheet extends StatelessWidget {
             color: iOS26Colors.statusClosed,
             onTap: () => onStatusSelected('closed'),
           ),
-          SafeArea(
+          const SafeArea(
             top: false,
-            child: const SizedBox(height: 20),
+            child: SizedBox(height: 20),
           ),
         ],
       ),
@@ -1866,542 +1879,542 @@ class _NotFoundState extends StatelessWidget {
 }
 
 /// ====================================================================
-/// Assign Admin Bottom Sheet
+/// ✅ تم تعليق كامل _AssignAdminBottomSheet - يمكن إلغاء التعليق لاحقاً
 /// ====================================================================
 
-class _AssignAdminBottomSheet extends StatefulWidget {
-  final String complaintId;
-  final String? currentAssignedTo;
-  final VoidCallback onAssigned;
+// class _AssignAdminBottomSheet extends StatefulWidget {
+//   final String complaintId;
+//   final String? currentAssignedTo;
+//   final VoidCallback onAssigned;
+//
+//   const _AssignAdminBottomSheet({
+//     required this.complaintId,
+//     this.currentAssignedTo,
+//     required this.onAssigned,
+//   });
+//
+//   @override
+//   State<_AssignAdminBottomSheet> createState() => _AssignAdminBottomSheetState();
+// }
+//
+// class _AssignAdminBottomSheetState extends State<_AssignAdminBottomSheet> {
+//   final TextEditingController _searchController = TextEditingController();
+//   final ComplaintsController _complaintsController = Get.find<ComplaintsController>();
+//
+//   List<dynamic> _admins = [];
+//   List<dynamic> _filteredAdmins = [];
+//   bool _isLoading = true;
+//   String? _selectedAdminId;
+//   bool _isAssigning = false;
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//     _selectedAdminId = widget.currentAssignedTo;
+//     _loadAdmins();
+//   }
+//
+//   @override
+//   void dispose() {
+//     _searchController.dispose();
+//     super.dispose();
+//   }
+//
+//   Future<void> _loadAdmins() async {
+//     try {
+//       setState(() => _isLoading = true);
+//
+//       // جلب المسؤولين
+//       _admins = await _complaintsController.getAdminsForAssignment();
+//       _filteredAdmins = _admins;
+//     } catch (e) {
+//       Helpers.showErrorSnackbar('حدث خطأ في تحميل المسؤولين');
+//     } finally {
+//       setState(() => _isLoading = false);
+//     }
+//   }
+//
+//   void _filterAdmins(String query) {
+//     setState(() {
+//       if (query.isEmpty) {
+//         _filteredAdmins = _admins;
+//       } else {
+//         _filteredAdmins = _admins.where((admin) {
+//           final name = admin.fullName?.toString().toLowerCase() ?? '';
+//           final id = admin.rationalId?.toString() ?? '';
+//           final phone = admin.phone?.toString() ?? '';
+//           return name.contains(query.toLowerCase()) ||
+//               id.contains(query) ||
+//               phone.contains(query);
+//         }).toList();
+//       }
+//     });
+//   }
+//
+//   Future<void> _assignAdmin() async {
+//     if (_selectedAdminId == null) {
+//       Helpers.showErrorSnackbar('يرجى اختيار مسؤول');
+//       return;
+//     }
+//
+//     HapticFeedback.mediumImpact();
+//     setState(() => _isAssigning = true);
+//
+//     try {
+//       await _complaintsController.assignComplaint(
+//         widget.complaintId,
+//         _selectedAdminId!,
+//       );
+//
+//       Get.back();
+//       widget.onAssigned();
+//       Helpers.showSuccessSnackbar('تم تعيين المسؤول بنجاح');
+//     } catch (e) {
+//       Helpers.showErrorSnackbar(e.toString());
+//     } finally {
+//       setState(() => _isAssigning = false);
+//     }
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       height: MediaQuery.of(context).size.height * 0.75,
+//       decoration: const BoxDecoration(
+//         color: iOS26Colors.surfaceElevated,
+//         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+//       ),
+//       child: Column(
+//         children: [
+//           // Handle
+//           Container(
+//             margin: const EdgeInsets.only(top: 12),
+//             width: 40,
+//             height: 4,
+//             decoration: BoxDecoration(
+//               color: iOS26Colors.borderPrimary,
+//               borderRadius: BorderRadius.circular(2),
+//             ),
+//           ),
+//
+//           // Header
+//           Padding(
+//             padding: const EdgeInsets.all(20),
+//             child: Row(
+//               children: [
+//                 Container(
+//                   width: 44,
+//                   height: 44,
+//                   decoration: BoxDecoration(
+//                     color: iOS26Colors.accentGreen.withValues(alpha: 0.15),
+//                     borderRadius: BorderRadius.circular(12),
+//                   ),
+//                   child: const Icon(
+//                     Iconsax.user_add,
+//                     color: iOS26Colors.accentGreen,
+//                     size: 22,
+//                   ),
+//                 ),
+//                 const SizedBox(width: 14),
+//                 const Expanded(
+//                   child: Column(
+//                     crossAxisAlignment: CrossAxisAlignment.start,
+//                     children: [
+//                       Text(
+//                         'تعيين مسؤول',
+//                         style: TextStyle(
+//                           fontSize: 18,
+//                           fontWeight: FontWeight.w600,
+//                           color: iOS26Colors.textPrimary,
+//                         ),
+//                       ),
+//                       SizedBox(height: 2),
+//                       Text(
+//                         'اختر المسؤول لمعالجة هذه الشكوى',
+//                         style: TextStyle(
+//                           fontSize: 13,
+//                           color: iOS26Colors.textTertiary,
+//                         ),
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+//                 GestureDetector(
+//                   onTap: () => Get.back(),
+//                   child: Container(
+//                     width: 32,
+//                     height: 32,
+//                     decoration: BoxDecoration(
+//                       color: iOS26Colors.surfaceGlass,
+//                       borderRadius: BorderRadius.circular(8),
+//                     ),
+//                     child: const Icon(
+//                       Icons.close,
+//                       color: iOS26Colors.textTertiary,
+//                       size: 18,
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ),
+//
+//           // Search Bar
+//           Padding(
+//             padding: const EdgeInsets.symmetric(horizontal: 20),
+//             child: Container(
+//               height: 44,
+//               padding: const EdgeInsets.symmetric(horizontal: 14),
+//               decoration: BoxDecoration(
+//                 color: iOS26Colors.surfaceGlass,
+//                 borderRadius: BorderRadius.circular(12),
+//                 border: Border.all(
+//                   color: iOS26Colors.borderPrimary.withValues(alpha: 0.3),
+//                 ),
+//               ),
+//               child: Row(
+//                 children: [
+//                   const Icon(
+//                     Iconsax.search_normal,
+//                     size: 18,
+//                     color: iOS26Colors.textTertiary,
+//                   ),
+//                   const SizedBox(width: 10),
+//                   Expanded(
+//                     child: TextField(
+//                       controller: _searchController,
+//                       onChanged: _filterAdmins,
+//                       style: const TextStyle(
+//                         color: iOS26Colors.textPrimary,
+//                         fontSize: 15,
+//                       ),
+//                       cursorColor: iOS26Colors.accentBlue,
+//                       decoration: const InputDecoration(
+//                         hintText: 'بحث عن مسؤول...',
+//                         hintStyle: TextStyle(
+//                           color: iOS26Colors.textTertiary,
+//                           fontSize: 15,
+//                         ),
+//                         border: InputBorder.none,
+//                         filled: false,
+//                         contentPadding: EdgeInsets.zero,
+//                         isCollapsed: true,
+//                       ),
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ),
+//           ),
+//           const SizedBox(height: 16),
+//
+//           // Admins List
+//           Expanded(
+//             child: _isLoading
+//                 ? const Center(
+//               child: CircularProgressIndicator(
+//                 color: iOS26Colors.accentBlue,
+//               ),
+//             )
+//                 : _filteredAdmins.isEmpty
+//                 ? Center(
+//               child: Column(
+//                 mainAxisAlignment: MainAxisAlignment.center,
+//                 children: [
+//                   Container(
+//                     width: 64,
+//                     height: 64,
+//                     decoration: BoxDecoration(
+//                       color: iOS26Colors.surfaceGlass,
+//                       borderRadius: BorderRadius.circular(16),
+//                     ),
+//                     child: const Icon(
+//                       Iconsax.user_search,
+//                       color: iOS26Colors.textTertiary,
+//                       size: 28,
+//                     ),
+//                   ),
+//                   const SizedBox(height: 16),
+//                   const Text(
+//                     'لا يوجد مسؤولين',
+//                     style: TextStyle(
+//                       fontSize: 16,
+//                       fontWeight: FontWeight.w600,
+//                       color: iOS26Colors.textPrimary,
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             )
+//                 : ListView.builder(
+//               physics: const BouncingScrollPhysics(),
+//               padding: const EdgeInsets.symmetric(horizontal: 20),
+//               itemCount: _filteredAdmins.length,
+//               itemBuilder: (context, index) {
+//                 final admin = _filteredAdmins[index];
+//                 final isSelected = _selectedAdminId == admin.id;
+//
+//                 return _AdminCard(
+//                   admin: admin,
+//                   isSelected: isSelected,
+//                   onTap: () {
+//                     HapticFeedback.selectionClick();
+//                     setState(() => _selectedAdminId = admin.id);
+//                   },
+//                 );
+//               },
+//             ),
+//           ),
+//
+//           // Bottom Actions
+//           Container(
+//             padding: EdgeInsets.fromLTRB(
+//               20,
+//               16,
+//               20,
+//               MediaQuery.of(context).padding.bottom + 16,
+//             ),
+//             decoration: BoxDecoration(
+//               color: iOS26Colors.surfaceElevated,
+//               border: Border(
+//                 top: BorderSide(
+//                   color: iOS26Colors.borderPrimary.withValues(alpha: 0.3),
+//                 ),
+//               ),
+//             ),
+//             child: Row(
+//               children: [
+//                 Expanded(
+//                   child: GestureDetector(
+//                     onTap: () => Get.back(),
+//                     child: Container(
+//                       height: 52,
+//                       decoration: BoxDecoration(
+//                         color: iOS26Colors.surfaceGlass,
+//                         borderRadius: BorderRadius.circular(14),
+//                       ),
+//                       child: const Center(
+//                         child: Text(
+//                           'إلغاء',
+//                           style: TextStyle(
+//                             fontSize: 15,
+//                             fontWeight: FontWeight.w600,
+//                             color: iOS26Colors.textSecondary,
+//                           ),
+//                         ),
+//                       ),
+//                     ),
+//                   ),
+//                 ),
+//                 const SizedBox(width: 12),
+//                 Expanded(
+//                   flex: 2,
+//                   child: GestureDetector(
+//                     onTap: _selectedAdminId == null || _isAssigning
+//                         ? null
+//                         : _assignAdmin,
+//                     child: AnimatedContainer(
+//                       duration: const Duration(milliseconds: 200),
+//                       height: 52,
+//                       decoration: BoxDecoration(
+//                         gradient: _selectedAdminId != null && !_isAssigning
+//                             ? const LinearGradient(
+//                           colors: [
+//                             iOS26Colors.accentGreen,
+//                             Color(0xFF28B44B),
+//                           ],
+//                         )
+//                             : null,
+//                         color: _selectedAdminId == null || _isAssigning
+//                             ? iOS26Colors.surfaceGlass
+//                             : null,
+//                         borderRadius: BorderRadius.circular(14),
+//                         boxShadow: _selectedAdminId != null && !_isAssigning
+//                             ? [
+//                           BoxShadow(
+//                             color: iOS26Colors.accentGreen.withValues(alpha: 0.3),
+//                             blurRadius: 12,
+//                             offset: const Offset(0, 4),
+//                           ),
+//                         ]
+//                             : null,
+//                       ),
+//                       child: Center(
+//                         child: _isAssigning
+//                             ? const SizedBox(
+//                           width: 22,
+//                           height: 22,
+//                           child: CircularProgressIndicator(
+//                             color: Colors.white,
+//                             strokeWidth: 2,
+//                           ),
+//                         )
+//                             : Row(
+//                           mainAxisAlignment: MainAxisAlignment.center,
+//                           children: [
+//                             Icon(
+//                               Iconsax.tick_circle,
+//                               size: 20,
+//                               color: _selectedAdminId != null
+//                                   ? Colors.white
+//                                   : iOS26Colors.textTertiary,
+//                             ),
+//                             const SizedBox(width: 8),
+//                             Text(
+//                               'تعيين المسؤول',
+//                               style: TextStyle(
+//                                 fontSize: 15,
+//                                 fontWeight: FontWeight.w600,
+//                                 color: _selectedAdminId != null
+//                                     ? Colors.white
+//                                     : iOS26Colors.textTertiary,
+//                               ),
+//                             ),
+//                           ],
+//                         ),
+//                       ),
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
 
-  const _AssignAdminBottomSheet({
-    required this.complaintId,
-    this.currentAssignedTo,
-    required this.onAssigned,
-  });
-
-  @override
-  State<_AssignAdminBottomSheet> createState() => _AssignAdminBottomSheetState();
-}
-
-class _AssignAdminBottomSheetState extends State<_AssignAdminBottomSheet> {
-  final TextEditingController _searchController = TextEditingController();
-  final ComplaintsController _complaintsController = Get.find<ComplaintsController>();
-
-  List<dynamic> _admins = [];
-  List<dynamic> _filteredAdmins = [];
-  bool _isLoading = true;
-  String? _selectedAdminId;
-  bool _isAssigning = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedAdminId = widget.currentAssignedTo;
-    _loadAdmins();
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _loadAdmins() async {
-    try {
-      setState(() => _isLoading = true);
-
-      // جلب المسؤولين
-      _admins = await _complaintsController.getAdminsForAssignment();
-      _filteredAdmins = _admins;
-    } catch (e) {
-      Helpers.showErrorSnackbar('حدث خطأ في تحميل المسؤولين');
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  void _filterAdmins(String query) {
-    setState(() {
-      if (query.isEmpty) {
-        _filteredAdmins = _admins;
-      } else {
-        _filteredAdmins = _admins.where((admin) {
-          final name = admin.fullName?.toString().toLowerCase() ?? '';
-          final id = admin.rationalId?.toString() ?? '';
-          final phone = admin.phone?.toString() ?? '';
-          return name.contains(query.toLowerCase()) ||
-              id.contains(query) ||
-              phone.contains(query);
-        }).toList();
-      }
-    });
-  }
-
-  Future<void> _assignAdmin() async {
-    if (_selectedAdminId == null) {
-      Helpers.showErrorSnackbar('يرجى اختيار مسؤول');
-      return;
-    }
-
-    HapticFeedback.mediumImpact();
-    setState(() => _isAssigning = true);
-
-    try {
-      await _complaintsController.assignComplaint(
-        widget.complaintId,
-        _selectedAdminId!,
-      );
-
-      Get.back();
-      widget.onAssigned();
-      Helpers.showSuccessSnackbar('تم تعيين المسؤول بنجاح');
-    } catch (e) {
-      Helpers.showErrorSnackbar(e.toString());
-    } finally {
-      setState(() => _isAssigning = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.75,
-      decoration: const BoxDecoration(
-        color: iOS26Colors.surfaceElevated,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        children: [
-          // Handle
-          Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: iOS26Colors.borderPrimary,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-
-          // Header
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: iOS26Colors.accentGreen.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Iconsax.user_add,
-                    color: iOS26Colors.accentGreen,
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'تعيين مسؤول',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: iOS26Colors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        'اختر المسؤول لمعالجة هذه الشكوى',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: iOS26Colors.textTertiary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () => Get.back(),
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: iOS26Colors.surfaceGlass,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.close,
-                      color: iOS26Colors.textTertiary,
-                      size: 18,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Container(
-              height: 44,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(
-                color: iOS26Colors.surfaceGlass,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: iOS26Colors.borderPrimary.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Iconsax.search_normal,
-                    size: 18,
-                    color: iOS26Colors.textTertiary,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: _filterAdmins,
-                      style: const TextStyle(
-                        color: iOS26Colors.textPrimary,
-                        fontSize: 15,
-                      ),
-                      cursorColor: iOS26Colors.accentBlue,
-                      decoration: const InputDecoration(
-                        hintText: 'بحث عن مسؤول...',
-                        hintStyle: TextStyle(
-                          color: iOS26Colors.textTertiary,
-                          fontSize: 15,
-                        ),
-                        border: InputBorder.none,
-                        filled: false,
-                        contentPadding: EdgeInsets.zero,
-                        isCollapsed: true,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Admins List
-          Expanded(
-            child: _isLoading
-                ? const Center(
-              child: CircularProgressIndicator(
-                color: iOS26Colors.accentBlue,
-              ),
-            )
-                : _filteredAdmins.isEmpty
-                ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: iOS26Colors.surfaceGlass,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Icon(
-                      Iconsax.user_search,
-                      color: iOS26Colors.textTertiary,
-                      size: 28,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'لا يوجد مسؤولين',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: iOS26Colors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-            )
-                : ListView.builder(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemCount: _filteredAdmins.length,
-              itemBuilder: (context, index) {
-                final admin = _filteredAdmins[index];
-                final isSelected = _selectedAdminId == admin.id;
-
-                return _AdminCard(
-                  admin: admin,
-                  isSelected: isSelected,
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    setState(() => _selectedAdminId = admin.id);
-                  },
-                );
-              },
-            ),
-          ),
-
-          // Bottom Actions
-          Container(
-            padding: EdgeInsets.fromLTRB(
-              20,
-              16,
-              20,
-              MediaQuery.of(context).padding.bottom + 16,
-            ),
-            decoration: BoxDecoration(
-              color: iOS26Colors.surfaceElevated,
-              border: Border(
-                top: BorderSide(
-                  color: iOS26Colors.borderPrimary.withValues(alpha: 0.3),
-                ),
-              ),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => Get.back(),
-                    child: Container(
-                      height: 52,
-                      decoration: BoxDecoration(
-                        color: iOS26Colors.surfaceGlass,
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'إلغاء',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: iOS26Colors.textSecondary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 2,
-                  child: GestureDetector(
-                    onTap: _selectedAdminId == null || _isAssigning
-                        ? null
-                        : _assignAdmin,
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      height: 52,
-                      decoration: BoxDecoration(
-                        gradient: _selectedAdminId != null && !_isAssigning
-                            ? const LinearGradient(
-                          colors: [
-                            iOS26Colors.accentGreen,
-                            Color(0xFF28B44B),
-                          ],
-                        )
-                            : null,
-                        color: _selectedAdminId == null || _isAssigning
-                            ? iOS26Colors.surfaceGlass
-                            : null,
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: _selectedAdminId != null && !_isAssigning
-                            ? [
-                          BoxShadow(
-                            color: iOS26Colors.accentGreen.withValues(alpha: 0.3),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ]
-                            : null,
-                      ),
-                      child: Center(
-                        child: _isAssigning
-                            ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                            : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Iconsax.tick_circle,
-                              size: 20,
-                              color: _selectedAdminId != null
-                                  ? Colors.white
-                                  : iOS26Colors.textTertiary,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'تعيين المسؤول',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: _selectedAdminId != null
-                                    ? Colors.white
-                                    : iOS26Colors.textTertiary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Admin Card
-class _AdminCard extends StatelessWidget {
-  final dynamic admin;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _AdminCard({
-    required this.admin,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? iOS26Colors.accentGreen.withValues(alpha: 0.1)
-              : iOS26Colors.surfaceCard,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected
-                ? iOS26Colors.accentGreen.withValues(alpha: 0.5)
-                : iOS26Colors.borderPrimary.withValues(alpha: 0.3),
-            width: isSelected ? 1.5 : 0.5,
-          ),
-        ),
-        child: Row(
-          children: [
-            // Avatar
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: iOS26Colors.accentPurple.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Center(
-                child: Text(
-                  (admin.fullName?.toString() ?? 'A')[0].toUpperCase(),
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: iOS26Colors.accentPurple,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 14),
-
-            // Info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    admin.fullName?.toString() ?? '',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: isSelected
-                          ? iOS26Colors.accentGreen
-                          : iOS26Colors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(
-                        Iconsax.shield_tick,
-                        size: 12,
-                        color: iOS26Colors.accentPurple,
-                      ),
-                      const SizedBox(width: 4),
-                      const Text(
-                        'مسؤول',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: iOS26Colors.accentPurple,
-                        ),
-                      ),
-                      if (admin.phone != null) ...[
-                        const SizedBox(width: 12),
-                        const Icon(
-                          Iconsax.call,
-                          size: 12,
-                          color: iOS26Colors.textTertiary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          admin.phone.toString(),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: iOS26Colors.textTertiary,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            // Selection Indicator
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: isSelected ? iOS26Colors.accentGreen : Colors.transparent,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isSelected
-                      ? iOS26Colors.accentGreen
-                      : iOS26Colors.borderPrimary,
-                  width: 2,
-                ),
-              ),
-              child: isSelected
-                  ? const Icon(Icons.check, size: 14, color: Colors.white)
-                  : null,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+/// ✅ تم تعليق _AdminCard أيضاً لأنه يستخدم فقط مع _AssignAdminBottomSheet
+// class _AdminCard extends StatelessWidget {
+//   final dynamic admin;
+//   final bool isSelected;
+//   final VoidCallback onTap;
+//
+//   const _AdminCard({
+//     required this.admin,
+//     required this.isSelected,
+//     required this.onTap,
+//   });
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return GestureDetector(
+//       onTap: onTap,
+//       child: AnimatedContainer(
+//         duration: const Duration(milliseconds: 200),
+//         margin: const EdgeInsets.only(bottom: 12),
+//         padding: const EdgeInsets.all(16),
+//         decoration: BoxDecoration(
+//           color: isSelected
+//               ? iOS26Colors.accentGreen.withValues(alpha: 0.1)
+//               : iOS26Colors.surfaceCard,
+//           borderRadius: BorderRadius.circular(16),
+//           border: Border.all(
+//             color: isSelected
+//                 ? iOS26Colors.accentGreen.withValues(alpha: 0.5)
+//                 : iOS26Colors.borderPrimary.withValues(alpha: 0.3),
+//             width: isSelected ? 1.5 : 0.5,
+//           ),
+//         ),
+//         child: Row(
+//           children: [
+//             // Avatar
+//             Container(
+//               width: 52,
+//               height: 52,
+//               decoration: BoxDecoration(
+//                 color: iOS26Colors.accentPurple.withValues(alpha: 0.2),
+//                 borderRadius: BorderRadius.circular(14),
+//               ),
+//               child: Center(
+//                 child: Text(
+//                   (admin.fullName?.toString() ?? 'A')[0].toUpperCase(),
+//                   style: const TextStyle(
+//                     fontSize: 22,
+//                     fontWeight: FontWeight.w700,
+//                     color: iOS26Colors.accentPurple,
+//                   ),
+//                 ),
+//               ),
+//             ),
+//             const SizedBox(width: 14),
+//
+//             // Info
+//             Expanded(
+//               child: Column(
+//                 crossAxisAlignment: CrossAxisAlignment.start,
+//                 children: [
+//                   Text(
+//                     admin.fullName?.toString() ?? '',
+//                     style: TextStyle(
+//                       fontSize: 15,
+//                       fontWeight: FontWeight.w600,
+//                       color: isSelected
+//                           ? iOS26Colors.accentGreen
+//                           : iOS26Colors.textPrimary,
+//                     ),
+//                   ),
+//                   const SizedBox(height: 4),
+//                   Row(
+//                     children: [
+//                       const Icon(
+//                         Iconsax.shield_tick,
+//                         size: 12,
+//                         color: iOS26Colors.accentPurple,
+//                       ),
+//                       const SizedBox(width: 4),
+//                       const Text(
+//                         'مسؤول',
+//                         style: TextStyle(
+//                           fontSize: 12,
+//                           color: iOS26Colors.accentPurple,
+//                         ),
+//                       ),
+//                       if (admin.phone != null) ...[
+//                         const SizedBox(width: 12),
+//                         const Icon(
+//                           Iconsax.call,
+//                           size: 12,
+//                           color: iOS26Colors.textTertiary,
+//                         ),
+//                         const SizedBox(width: 4),
+//                         Text(
+//                           admin.phone.toString(),
+//                           style: const TextStyle(
+//                             fontSize: 12,
+//                             color: iOS26Colors.textTertiary,
+//                           ),
+//                         ),
+//                       ],
+//                     ],
+//                   ),
+//                 ],
+//               ),
+//             ),
+//
+//             // Selection Indicator
+//             AnimatedContainer(
+//               duration: const Duration(milliseconds: 200),
+//               width: 24,
+//               height: 24,
+//               decoration: BoxDecoration(
+//                 color: isSelected ? iOS26Colors.accentGreen : Colors.transparent,
+//                 shape: BoxShape.circle,
+//                 border: Border.all(
+//                   color: isSelected
+//                       ? iOS26Colors.accentGreen
+//                       : iOS26Colors.borderPrimary,
+//                   width: 2,
+//                 ),
+//               ),
+//               child: isSelected
+//                   ? const Icon(Icons.check, size: 14, color: Colors.white)
+//                   : null,
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }

@@ -213,7 +213,7 @@ class _LoginFormCard extends StatelessWidget {
           const SizedBox(height: 20),
 
           // Remember Me
-          _RememberMeCheckbox(controller: controller),
+          // _RememberMeCheckbox(controller: controller),
         ],
       ),
     );
@@ -532,57 +532,57 @@ class _iOS26PasswordFieldState extends State<_iOS26PasswordField> {
 }
 
 /// Remember Me Checkbox
-class _RememberMeCheckbox extends StatelessWidget {
-  final AuthController controller;
-
-  const _RememberMeCheckbox({required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    return Obx(() => GestureDetector(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        controller.toggleRememberMe(!controller.rememberMe.value);
-      },
-      child: Row(
-        children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: 22,
-            height: 22,
-            decoration: BoxDecoration(
-              color: controller.rememberMe.value
-                  ? iOS26Colors.accentBlue
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: controller.rememberMe.value
-                    ? iOS26Colors.accentBlue
-                    : iOS26Colors.borderPrimary,
-                width: 1.5,
-              ),
-            ),
-            child: controller.rememberMe.value
-                ? const Icon(
-              Icons.check,
-              size: 14,
-              color: Colors.white,
-            )
-                : null,
-          ),
-          const SizedBox(width: 10),
-          const Text(
-            'تذكرني',
-            style: TextStyle(
-              color: iOS26Colors.textSecondary,
-              fontSize: 14,
-            ),
-          ),
-        ],
-      ),
-    ));
-  }
-}
+// class _RememberMeCheckbox extends StatelessWidget {
+//   final AuthController controller;
+//
+//   const _RememberMeCheckbox({required this.controller});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Obx(() => GestureDetector(
+//       onTap: () {
+//         HapticFeedback.selectionClick();
+//         controller.toggleRememberMe(!controller.rememberMe.value);
+//       },
+//       child: Row(
+//         children: [
+//           AnimatedContainer(
+//             duration: const Duration(milliseconds: 200),
+//             width: 22,
+//             height: 22,
+//             decoration: BoxDecoration(
+//               color: controller.rememberMe.value
+//                   ? iOS26Colors.accentBlue
+//                   : Colors.transparent,
+//               borderRadius: BorderRadius.circular(6),
+//               border: Border.all(
+//                 color: controller.rememberMe.value
+//                     ? iOS26Colors.accentBlue
+//                     : iOS26Colors.borderPrimary,
+//                 width: 1.5,
+//               ),
+//             ),
+//             child: controller.rememberMe.value
+//                 ? const Icon(
+//               Icons.check,
+//               size: 14,
+//               color: Colors.white,
+//             )
+//                 : null,
+//           ),
+//           const SizedBox(width: 10),
+//           const Text(
+//             'تذكرني',
+//             style: TextStyle(
+//               color: iOS26Colors.textSecondary,
+//               fontSize: 14,
+//             ),
+//           ),
+//         ],
+//       ),
+//     ));
+//   }
+// }
 
 /// Login Button
 class _LoginButton extends StatelessWidget {
